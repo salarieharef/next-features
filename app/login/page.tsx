@@ -1,26 +1,29 @@
+'use client'
+
 import React from "react";
-import { redirect } from "next/navigation";
-import { api } from "../utils/api";
-import { setToken } from "../actions/auth";
+import { signIn } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
 
-const LoginPage = ({ searchParams }: { searchParams: { redirect?: string } }) => {
-  const handleLogin = async (formData: FormData) => {
-    "use server";
+const LoginPage = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-    try {
-      const data = await api.post('/Sign/Login', {
-        phoneOrGmail: formData.get('phoneOrGmail'),
-        password: formData.get('password'),
-        rememberMe: formData.get('rememberMe') === 'true',
-      });
-      
-      if (data.token) {
-        setToken(data.token);
-        const redirectPath = searchParams.redirect || '/dashboard';
-        redirect(redirectPath);
-      }
-    } catch (error) {
-      console.error('خطا در ورود:', error);
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    
+    const result = await signIn('credentials', {
+      phoneOrGmail: formData.get('phoneOrGmail'),
+      password: formData.get('password'),
+      rememberMe: formData.get('rememberMe'),
+      redirect: false,
+    });
+
+    if (result?.error) {
+      console.error('خطا در ورود:', result.error);
+    } else {
+      const redirectPath = searchParams.get('redirect') || '/dashboard';
+      router.push(redirectPath);
     }
   };
 
@@ -32,7 +35,7 @@ const LoginPage = ({ searchParams }: { searchParams: { redirect?: string } }) =>
             ورود به حساب کاربری
           </h2>
         </div>
-        <form className="mt-8 space-y-6" action={handleLogin}>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
               <label htmlFor="phoneOrGmail" className="sr-only">
