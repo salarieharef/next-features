@@ -1,11 +1,17 @@
 import React from "react";
 
+type UserType = {
+  id:number
+  name:string
+  age:number
+}
+
 const SimpleGet = async () => {
   const res = await fetch(
     "https://673ef547a9bc276ec4b66ea0.mockapi.io/users/user",
     { cache: "no-store" }
   );
-  const users = await res.json();
+  const users:UserType[] = await res.json();
   return (
     <div>
       {users?.map((item) => {
